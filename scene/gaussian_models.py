@@ -7,26 +7,32 @@ from utils.system_utils import mkdir_p
 from plyfile import PlyData, PlyElement
 from utils.sh_utils import RGB2SH
 from utils.graphics_utils import BasicPointCloud
-from utils.general_utils import strip_symmetric, build_scaling_rotation
-from utils.reloc_utils import compute_relocation_cuda
+from utils.general_utils import strip_symmetric, build_scaling_rotation, strip_2D
+# from utils.reloc_utils import compute_relocation_cuda
 from utils.sghmc import AdamSGHMC
 from utils.system_utils import mkdir_p
 
 class Model:
 
     def setup_functions(self):
-        def build_covariance_from_scaling_rotation(center, scaling, scaling_modifier, rotation):
-            RS = build_scaling_rotation(torch.cat([scaling * scaling_modifier, torch.ones_like(scaling)], dim=-1), rotation).permute(0,2,1)
-            trans = torch.zeros((center.shape[0], 4, 4), dtype=torch.float, device="cuda")
-            trans[:,:3,:3] = RS
-            trans[:, 3,:3] = center
-            trans[:, 3, 3] = 1
-            return trans
+        def build_covariance_from_scaling_rotation(scaling, rotation, scaling_modifier=1.0):
+            L = build_scaling_rotation(scaling_modifier * scaling, rotation)
+            actual_covariance = L @ L.transpose(1, 2)
+            symm = strip_2D(actual_covariance)
+            return symm
+
+        def build_covariance_inv_from_scaling_rotation(scaling, rotation, scaling_modifier=1.0):
+            L = build_scaling_rotation(scaling_modifier * scaling, rotation)
+            actual_covariance = L @ L.transpose(1, 2)
+            actual_covariance_inv = torch.inverse(actual_covariance)
+            symm = strip_2D(actual_covariance)
+            return symm
 
         self.scaling_activation = torch.exp
         self.scaling_inverse_activation = torch.log
 
         self.covariance_activation = build_covariance_from_scaling_rotation # translate
+        self.covariance_inv_activation = build_covariance_inv_from_scaling_rotation
 
         self.opacity_activation = torch.tanh
         # self.opacity_activation = torch.sigmoid
@@ -51,6 +57,7 @@ class Model:
         self.optimizer = None
         self.percent_dense = 0
         self.spatial_lr_scale = 0
+        # self._rgb = torch.empty(0)
         self.setup_functions()
 
         # NOTE: This is always 1
@@ -136,6 +143,16 @@ class Model:
     @property
     def get_rotation(self):
         return self.rotation_activation(self._rotation)
+
+    def get_cov(self):
+        return self.covariance_activation(self.get_scaling, self.get_rotation)
+
+    def get_cov_inv(self):
+        return self.covariance_activation(self.get_scaling, self.get_rotation)
+
+    @property
+    def get_rgb(self):
+        return self._rgb
 
     def create_from_samlpe_points(self, sample_xy : torch.Tensor, rgb : torch.Tensor, spatial_lr_scale):
         # 过滤掉rgb全为0的点
@@ -332,11 +349,13 @@ class Model:
         return optimizable_tensors
 
     def _update_params(self, idxs, ratio):
-        new_opacity, new_scaling = compute_relocation_cuda(
-            opacity_old = self.get_opacity[idxs, 0] * self.get_negative[idxs, 0],
-            scale_old=self.get_scaling[idxs],
-            N=ratio[idxs, 0] + 1
-        )
+        # new_opacity, new_scaling = compute_relocation_cuda(
+        #     opacity_old = self.get_opacity[idxs, 0] * self.get_negative[idxs, 0],
+        #     scale_old=self.get_scaling[idxs],
+        #     N=ratio[idxs, 0] + 1
+        # )
+        new_opacity, new_scaling = self.get_opacity[idxs, 0] * self.get_negative[idxs, 0],
+        new_scaling = self.get_scaling[idxs],
 
         new_opacity = torch.clamp(new_opacity.unsqueeze(-1), max = 1.0 - torch.finfo(torch.float32).eps, min = -1.0 + torch.finfo(torch.float32).eps)
         new_opacity = torch.where((new_opacity >= 0) & (new_opacity < 0.005), 0.005, new_opacity)

@@ -116,6 +116,14 @@ def strip_lowerdiag(L):
 def strip_symmetric(sym):
     return strip_lowerdiag(sym)
 
+def strip_2D(L):
+    uncertainty = torch.zeros((L.shape[0], 3), dtype=torch.float, device="cuda")
+
+    uncertainty[:, 0] = L[:, 0, 0]
+    uncertainty[:, 1] = L[:, 0, 1]
+    uncertainty[:, 2] = L[:, 1, 1]
+    return uncertainty
+
 def build_rotation(r):
     norm = torch.sqrt(r[:,0]*r[:,0] + r[:,1]*r[:,1] + r[:,2]*r[:,2] )
 
@@ -140,18 +148,17 @@ def build_rotation(r):
     return R
 
 def build_rotation_2D(r):
-    R = torch.zeros((r.size(0), 3, 3), device='cuda')
+    R = torch.zeros((r.size(0), 2, 2), device='cuda')
 
     R[:, 0, 0] = torch.cos(r[:, 0])
     R[:, 0, 1] = -torch.sin(r[:, 0])
     R[:, 1, 0] = torch.sin(r[:, 0])
     R[:, 1, 1] = torch.cos(r[:, 0])
-    R[:, 2, 2] = 1.0
 
     return R
 
 def build_scaling_rotation(s, r):
-    L = torch.zeros((s.shape[0], 3, 3), dtype=torch.float, device="cuda")
+    L = torch.zeros((s.shape[0], 2, 2), dtype=torch.float, device="cuda")
     R = build_rotation_2D(r)
 
     L[:,0,0] = s[:,0]

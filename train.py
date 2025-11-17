@@ -56,7 +56,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         render_pkg = render(primitives, opt, background, resoulation)
 
         image = render_pkg["render"]
-        image = gt_image
+        torchvision.utils.save_image(image, os.path.join(args.model_path, 'test' + ".png"))
 
         Ll1 = l1_loss(image, gt_image)
 
@@ -239,7 +239,7 @@ if __name__ == "__main__":
     safe_state(args.quiet)
 
     torch.autograd.set_detect_anomaly(args.detect_anomaly)
-    #training(lp.extract(args), op.extract(args), pp.extract(args), args.test_iterations, args.save_iterations, args.checkpoint_iterations, args.start_checkpoint)
-    primitives = Model()
-    scene = Scene(lp.extract(args), primitives, render=True)
+    training(lp.extract(args), op.extract(args), pp.extract(args), args.test_iterations, args.save_iterations, args.checkpoint_iterations, args.start_checkpoint)
+    # primitives = Model()
+    # scene = Scene(lp.extract(args), primitives, render=True)
 
