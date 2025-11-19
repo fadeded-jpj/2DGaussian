@@ -1,1 +1,0 @@
-Namespace(sh_degree=3, source_path='E:\\tx contest\\code\\data', model_path='output/test', images='images', resolution=-1, white_background=False, data_device='cuda', eval=True, nu_degree=10.0, cap_max=-1, init_type='sfm', C_burnin=500000.0, C=100.0, burnin_iterations=7000, opacity_threshold=0.005)

@@ -3,3 +3,4 @@ submodules/picturegs/picturegs.egg-info
 submodules/picturegs/build
 **\__pycache__\
 
+output/
