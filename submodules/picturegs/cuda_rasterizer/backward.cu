@@ -150,6 +150,7 @@ renderCUDA(const float* negative,float* dL_dnegative,
 			}
 			// Propagate gradients from inverse depth to alphaas and
 			// per Gaussian inverse depths
+			last_alpha = alpha;
 
 
 
