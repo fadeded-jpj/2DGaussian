@@ -23,8 +23,8 @@ __device__ void computeCov2D(const glm::vec2 scale, const float rot, float* cov2
 	S[1][1] = scale.y;
 
 	glm::mat2 R = glm::mat2(
-		glm::cos(rot), -1.0f * glm::sin(rot),
-		glm::sin(rot), glm::cos(rot)
+		glm::cos(rot),  glm::sin(rot),
+		-1.0f *glm::sin(rot), glm::cos(rot)
 	);
 
 	glm::mat2 M = S * R;
