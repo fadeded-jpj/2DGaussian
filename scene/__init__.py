@@ -22,6 +22,7 @@ class Scene:
         self.loaded_iter = None
         self.primitives = primitives
         self.images = read_images(os.path.join(args.source_path))
+        _, H, W = self.images.images.shape
 
         if load_iteration:
             if load_iteration == -1:
@@ -35,6 +36,8 @@ class Scene:
         if render is False:
             sample_xy = get_sample_init_xy(n_points=2048).cuda() # N, 2  [0, 1]
             rgb = get_image_color(self.images, sample_xy).cuda() # N, 3
+            sample_xy[:, 0] *= W
+            sample_xy[:, 1] *= H
             self.primitives.create_from_samlpe_points(sample_xy, rgb, spatial_lr_scale=1.0)
         else:
             self.primitives.load_ply(os.path.join(self.model_path,

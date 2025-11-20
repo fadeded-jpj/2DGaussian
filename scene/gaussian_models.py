@@ -174,10 +174,10 @@ class Model:
         negatives = torch.full_like(opacities, 1.0).float().cuda()
 
         self._xyz = nn.Parameter(sample_xy.float().cuda().requires_grad_(True))
+        self._rgb = nn.Parameter(rgb.float().cuda().requires_grad_(True))
         self._opacity = nn.Parameter(opacities.requires_grad_(True))
         self._scaling = nn.Parameter(scales.requires_grad_(True))
         self._rotation = nn.Parameter(rots.requires_grad_(True))
-        self._rgb = nn.Parameter(rgb.float().cuda().requires_grad_(True))
         self._negative = nn.Parameter(negatives.requires_grad_(True))
 
 
@@ -250,12 +250,12 @@ class Model:
         "rotation" : new_rotation,
         "negative": new_negative}
 
-        print("xyz", new_xyz.shape)
-        print("rgb", new_color.shape)
-        print("opa:", new_opacities.shape)
-        print("sca", new_scaling.shape)
-        print("rot", new_rotation.shape)
-        print("nega", new_negative.shape)
+        # print("xyz", new_xyz.shape)
+        # print("rgb", new_color.shape)
+        # print("opa:", new_opacities.shape)
+        # print("sca", new_scaling.shape)
+        # print("rot", new_rotation.shape)
+        # print("nega", new_negative.shape)
 
         optimizable_tensors = self.cat_tensors_to_optimizer(d, indices)
 
