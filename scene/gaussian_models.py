@@ -29,11 +29,14 @@ class Model:
             symm = strip_2D(actual_covariance_inv)
             return symm
 
-        # self.scaling_activation = torch.log
-        # self.scaling_inverse_activation = torch.exp
+        # self.scaling_activation = torch.exp
+        # self.scaling_inverse_activation = torch.log
 
         self.scaling_activation = no_change
         self.scaling_inverse_activation = no_change
+
+        self.rotation_activation = torch.sigmoid
+        self.rotation_inverse_activation = inverse_sigmoid
 
         self.covariance_activation = build_covariance_from_scaling_rotation # translate
         self.covariance_inv_activation = build_covariance_inv_from_scaling_rotation
@@ -76,7 +79,6 @@ class Model:
             l.append('scale_{}'.format(i))
         for i in range(self._rotation.shape[1]):
             l.append('rot_{}'.format(i))
-
 
         l.append('negative')
 
@@ -151,7 +153,7 @@ class Model:
 
     @property
     def get_rotation(self):
-        return self._rotation
+        return self.rotation_activation(self._rotation)
 
     def get_cov(self):
         return self.covariance_activation(self.get_scaling, self.get_rotation)
@@ -163,7 +165,7 @@ class Model:
     def get_rgb(self):
         return self._rgb
 
-    def create_from_samlpe_points(self, sample_xy : torch.Tensor, rgb : torch.Tensor, spatial_lr_scale):
+    def create_from_samlpe_points(self, sample_xy : torch.Tensor, rgb : torch.Tensor, spatial_lr_scale, optimizer_type="default"):
         # 过滤掉rgb全为0的点
         mask = rgb.sum(dim=1) > 0.00
         rgb = rgb[mask]
@@ -171,14 +173,15 @@ class Model:
         sample_xy = sample_xy[mask]
 
         self.spatial_lr_scale = spatial_lr_scale
+        self.optimizer_type = optimizer_type
 
         points = torch.cat([sample_xy, torch.zeros(sample_xy.shape[0], 1, device=sample_xy.device)], dim=1)
         dist2 = torch.clamp_min(distCUDA2(points.float().cuda()), 0.000001)
         if torch.any(dist2.isinf()):
             dist2 = torch.where(dist2.isinf(), 10., dist2)
 
-        scales = torch.log(torch.sqrt(dist2)*0.1)[...,None].repeat(1, 3)[:, :2]
-        rots = torch.zeros((sample_xy.shape[0], 1), device="cuda").float().cuda()
+        scales = self.scaling_inverse_activation(torch.sqrt(dist2)*0.1)[...,None].repeat(1, 3)[:, :2]
+        rots = self.rotation_inverse_activation(torch.zeros((sample_xy.shape[0], 1), device="cuda").float().cuda())
 
         opacities = self.inverse_opacity_activation(0.5 * torch.ones((sample_xy.shape[0], 1), dtype=torch.float, device="cuda"))
         negatives = torch.full_like(opacities, 1.0).float().cuda()
@@ -205,7 +208,10 @@ class Model:
             {'params': [self._negative], 'lr': training_args.negetive_lr, "name": "negative"},
         ]
 
-        self.optimizer = AdamSGHMC(params=l, eps=1e-15, mdecay=C, scale_grad=1.0, mdecay_burnin=C_burnin, burnin_iterations=burnin_iterations)
+        if self.optimizer_type == "default":
+            self.optimizer = torch.optim.Adam(l, lr=0.01, eps=1e-15)
+        else:
+            self.optimizer = AdamSGHMC(params=l, eps=1e-15, mdecay=C, scale_grad=1.0, mdecay_burnin=C_burnin, burnin_iterations=burnin_iterations)
         self.xyz_scheduler_args = get_expon_lr_func(lr_init=training_args.position_lr_init*self.spatial_lr_scale,
                                                     lr_final=training_args.position_lr_final*self.spatial_lr_scale,
                                                     lr_delay_mult=training_args.position_lr_delay_mult,

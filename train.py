@@ -116,12 +116,13 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 L = build_scaling_rotation(primitives.get_scaling, primitives.get_rotation)
                 actual_covariance = L @ L.transpose(1, 2)
 
-                _, total_max, total_mean, total_min = primitives.optimizer.step(sig=sig.detach(), cov=actual_covariance.detach())
-                primitives.optimizer.zero_grad(set_to_none = True)
-                if tb_writer:
-                    tb_writer.add_scalar('sghmc_total_max', total_max.item(), iteration)
-                    tb_writer.add_scalar('sghmc_total_mean', total_mean.item(), iteration)
-                    tb_writer.add_scalar('sghmc_total_min', total_min.item(), iteration)
+                if dataset.optimizer_type == "sghmc":
+                    _, total_max, total_mean, total_min = primitives.optimizer.step(sig=sig.detach(), cov=actual_covariance.detach())
+                    primitives.optimizer.zero_grad(set_to_none = True)
+                    if tb_writer:
+                        tb_writer.add_scalar('sghmc_total_max', total_max.item(), iteration)
+                        tb_writer.add_scalar('sghmc_total_mean', total_mean.item(), iteration)
+                        tb_writer.add_scalar('sghmc_total_min', total_min.item(), iteration)
 
             if iteration > 500 and iteration < 5000 and iteration % 500 == 0 and False:
                 primitives.scale_control(0.005, scene.cameras_extent)

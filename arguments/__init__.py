@@ -54,6 +54,7 @@ class ModelParams(ParamGroup):
         self._white_background = False
         self.data_device = "cuda"
         self.eval = True
+        self.optimizer_type = "default"
 
         self.nu_degree = 10.
 

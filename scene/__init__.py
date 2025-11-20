@@ -38,7 +38,7 @@ class Scene:
             rgb = get_image_color(self.images, sample_xy).cuda() # N, 3
             sample_xy[:, 0] *= W
             sample_xy[:, 1] *= H
-            self.primitives.create_from_samlpe_points(sample_xy, rgb, spatial_lr_scale=1.0)
+            self.primitives.create_from_samlpe_points(sample_xy, rgb, spatial_lr_scale=1.0, optimizer_type=args.optimizer_type)
         else:
             self.primitives.load_ply(os.path.join(self.model_path,
                                                            "point_cloud",
