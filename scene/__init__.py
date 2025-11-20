@@ -34,7 +34,7 @@ class Scene:
 
 
         if render is False:
-            sample_xy = get_sample_init_xy(n_points=2048).cuda() # N, 2  [0, 1]
+            sample_xy = get_sample_init_xy(n_points=4096 * 2).cuda() # N, 2  [0, 1]
             rgb = get_image_color(self.images, sample_xy).cuda() # N, 3
             sample_xy[:, 0] *= W
             sample_xy[:, 1] *= H

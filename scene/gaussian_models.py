@@ -29,11 +29,11 @@ class Model:
             symm = strip_2D(actual_covariance_inv)
             return symm
 
-        # self.scaling_activation = torch.exp
-        # self.scaling_inverse_activation = torch.log
+        self.scaling_activation = torch.exp
+        self.scaling_inverse_activation = torch.log
 
-        self.scaling_activation = no_change
-        self.scaling_inverse_activation = no_change
+        # self.scaling_activation = no_change
+        # self.scaling_inverse_activation = no_change
 
         self.rotation_activation = torch.sigmoid
         self.rotation_inverse_activation = inverse_sigmoid

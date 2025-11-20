@@ -1,10 +1,10 @@
 {
     "resolution": 4,
-    "cap_max": 16384,
+    "cap_max": 30000,
     "nu_degree": 100,
     "C_burnin": 4e8,
     "C": 1.0e2,
-    "burnin_iterations": 8000,
-    "iterations": 8000,
+    "burnin_iterations": 5000,
+    "iterations": 10000,
     "optimizer_type": "sghmc"
 }

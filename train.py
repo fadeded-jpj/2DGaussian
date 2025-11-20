@@ -7,7 +7,7 @@ import sys
 from utils.general_utils import safe_state, get_expon_lr_func
 from tqdm import tqdm
 from renderer import render
-from utils.loss_utils import l1_loss, ssim
+from utils.loss_utils import l1_loss, ssim, DWT_loss
 from scene.gaussian_models import build_scaling_rotation
 from utils.general_utils import safe_state, op_sigmoid
 import json
@@ -23,6 +23,7 @@ from PIL import Image
 from os import makedirs
 import torchvision.transforms.functional as tf
 from argparse import ArgumentParser, Namespace
+from lpipsPyTorch import lpips
 
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 
@@ -82,7 +83,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
 
         Ll1 = l1_loss(image, gt_image)
-        loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(image, gt_image))
+        loss = (1.0 - opt.lambda_dssim - opt.lambda_fre) * Ll1 + (opt.lambda_dssim - opt.lambda_fre) * (1.0 - ssim(image, gt_image)) + opt.lambda_fre * DWT_loss(image, gt_image)
 
         # loss = loss + args.opacity_reg * torch.abs(primitives.get_opacity).mean()
         # loss = loss + args.scale_reg * torch.abs(primitives.get_scaling).mean()
@@ -133,6 +134,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
                 # scene.update_opacity(opt.dropout)
                 scene.save(iteration)
+                print("\n psnr:{}".format(psnr(image, gt_image).mean()))
+                print("\n ssim:{}".format(ssim(image, gt_image).mean()))
+                print("\n lpips:{}".format(lpips(image, gt_image, net_type='vgg').mean()))
 
             if iteration < opt.densify_until_iter and iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
                 dead_mask = (primitives.get_opacity < dataset.opacity_threshold).squeeze(-1)
@@ -140,7 +144,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 dead_mask =  torch.logical_and(dead_mask, dead_mask2)
 
                 primitives.recycle_components(dead_mask=dead_mask)
-                add_num = primitives.add_components(cap_max=16384)
+                add_num = primitives.add_components(cap_max=args.cap_max)
 
                 torch.cuda.empty_cache()
 
@@ -203,7 +207,7 @@ if __name__ == "__main__":
     parser.add_argument('--debug_from', type=int, default=-1)
     parser.add_argument('--detect_anomaly', action='store_true', default=False)
     parser.add_argument("--test_iterations", nargs="+", type=int, default=[7_000])
-    parser.add_argument("--save_iterations", nargs="+", type=int, default=[10, 100, 200, 300, 500, 1000, 5_000])
+    parser.add_argument("--save_iterations", nargs="+", type=int, default=[1000, 5_000])
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[])
     parser.add_argument("--start_checkpoint", type=str, default = None)

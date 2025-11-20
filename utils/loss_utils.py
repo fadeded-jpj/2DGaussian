@@ -16,6 +16,7 @@ from math import exp
 import ptwt
 from utils.general_utils import normalize
 
+
 def l1_loss(network_output, gt):
     return torch.abs((network_output - gt)).mean()
 
@@ -71,7 +72,7 @@ def depth_loss(depth, gt_depth):
     return loss.var()
 
 
-def depth_DWT_loss(depth, gt_depth, wavelet='haar', level=3):
+def DWT_loss(depth, gt_depth, wavelet='haar', level=2):
     depth = normalize(depth)
     gt_depth = normalize(gt_depth)
 
@@ -85,10 +86,11 @@ def depth_DWT_loss(depth, gt_depth, wavelet='haar', level=3):
         depth_ll = depth_coeffs[0]
         gt_depth_ll = gt_depth_coeffs[0]
 
-        L_LF += 0.5 * (gt_depth_ll - depth_ll).var() * (l1_loss(depth_ll, gt_depth_ll) ** 2)
+        L_LF += 0.5 * l1_loss(depth_ll, gt_depth_ll)
 
         if i == 1:
             lf, hl, hh = depth_coeffs[1]
-            L_HF = l1_loss(hh, torch.zeros_like(hh))
+            _, _, gt_hh = gt_depth_coeffs[1]
+            L_HF = l1_loss(hh, gt_hh)
 
-    return L_LF, L_HF
+    return L_HF
