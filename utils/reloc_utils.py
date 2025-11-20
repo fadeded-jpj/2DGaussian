@@ -1,5 +1,5 @@
 # from picturegs import compute_relocation
-from diff_t_rasterization import compute_relocation
+from picturegs import compute_relocation
 import torch
 import math
 

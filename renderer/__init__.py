@@ -44,6 +44,6 @@ def render(pc : Model, opt : OptimizationParams, background, resoulation):
 
     # print(render_img.device)
     # print(render_img.shape)
-    render_img = render_img.clamp(0, 1)
+    render_img = render_img.clamp(0., 1.)
 
     return {"render" : render_img}

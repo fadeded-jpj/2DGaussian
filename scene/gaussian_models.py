@@ -8,7 +8,7 @@ from plyfile import PlyData, PlyElement
 from utils.sh_utils import RGB2SH
 from utils.graphics_utils import BasicPointCloud
 from utils.general_utils import strip_symmetric, build_scaling_rotation, strip_2D
-# from utils.reloc_utils import compute_relocation_cuda
+from utils.reloc_utils import compute_relocation_cuda
 from utils.sghmc import AdamSGHMC
 from utils.system_utils import mkdir_p
 
@@ -359,22 +359,21 @@ class Model:
         return optimizable_tensors
 
     def _update_params(self, idxs, ratio):
-        # new_opacity, new_scaling = compute_relocation_cuda(
-        #     opacity_old = self.get_opacity[idxs, 0] * self.get_negative[idxs, 0],
-        #     scale_old=self.get_scaling[idxs],
-        #     N=ratio[idxs, 0] + 1
-        # )
+        new_opacity, new_scaling = compute_relocation_cuda(
+            opacity_old = self.get_opacity[idxs, 0] * self.get_negative[idxs, 0],
+            scale_old=self.get_scaling[idxs],
+            N=ratio[idxs, 0] + 1
+        )
 
+        # new_opacity = self.get_opacity[idxs] * self.get_negative[idxs]
 
-        new_opacity = self.get_opacity[idxs] * self.get_negative[idxs]
-
-        new_scaling = self.get_scaling[idxs]
+        # new_scaling = self.get_scaling[idxs]
 
         new_opacity = torch.clamp(new_opacity.unsqueeze(-1), max = 1.0 - torch.finfo(torch.float32).eps, min = -1.0 + torch.finfo(torch.float32).eps)
 
         new_opacity = torch.where((new_opacity >= 0) & (new_opacity < 0.005), 0.005, new_opacity)
 
-        new_opacity = torch.where((new_opacity < 0) & (new_opacity > -0.005), -0.005, new_opacity).squeeze(-1)
+        new_opacity = torch.where((new_opacity < 0) & (new_opacity > -0.005), -0.005, new_opacity)
 
         new_opacity = new_opacity / self.get_negative[idxs]
         new_opacity = self.inverse_opacity_activation(new_opacity)

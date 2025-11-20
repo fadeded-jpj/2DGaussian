@@ -62,7 +62,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         render_pkg = render(primitives, opt, background, resoulation)
 
         image = render_pkg["render"]
-        print("image max", image.max())
+        # print("image max", image.max())
         # image = torch.ones_like(gt_image)
         # print(image)
         # torchvision.utils.save_image(image, os.path.join(args.model_path, 'test' + ".png"))
@@ -234,7 +234,7 @@ if __name__ == "__main__":
     parser.add_argument('--debug_from', type=int, default=-1)
     parser.add_argument('--detect_anomaly', action='store_true', default=False)
     parser.add_argument("--test_iterations", nargs="+", type=int, default=[7_000])
-    parser.add_argument("--save_iterations", nargs="+", type=int, default=[10, 30_000])
+    parser.add_argument("--save_iterations", nargs="+", type=int, default=[1000, 30_000])
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[])
     parser.add_argument("--start_checkpoint", type=str, default = None)
