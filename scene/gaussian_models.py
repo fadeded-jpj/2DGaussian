@@ -26,7 +26,7 @@ class Model:
             L = build_scaling_rotation(scaling_modifier * scaling, rotation)
             actual_covariance = L @ L.transpose(1, 2)
             actual_covariance_inv = torch.inverse(actual_covariance)
-            symm = strip_2D(actual_covariance)
+            symm = strip_2D(actual_covariance_inv)
             return symm
 
         self.scaling_activation = torch.exp
