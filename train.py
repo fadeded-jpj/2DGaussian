@@ -85,6 +85,13 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
         loss.backward()
 
+        print("xyz grad:", primitives._xyz.grad)
+        print("opa grad:", primitives._opacity.grad)
+        print("rgb grad:", primitives._rgb.grad)
+        print("sca grad:", primitives._scaling.grad)
+        print("rot grad:", primitives._rotation.grad)
+        print("neg grad:", primitives._negative.grad)
+
         iter_end.record()
 
         with torch.no_grad():

@@ -11,6 +11,7 @@ from utils.general_utils import strip_symmetric, build_scaling_rotation, strip_2
 from utils.reloc_utils import compute_relocation_cuda
 from utils.sghmc import AdamSGHMC
 from utils.system_utils import mkdir_p
+from simple_knn._C import distCUDA2
 
 class Model:
 
@@ -167,7 +168,12 @@ class Model:
 
         self.spatial_lr_scale = spatial_lr_scale
 
-        scales = torch.ones((sample_xy.shape[0], 2)).float().cuda()
+        points = torch.cat([sample_xy, torch.zeros(sample_xy.shape[0], 1, device=sample_xy.device)], dim=1)
+        dist2 = torch.clamp_min(distCUDA2(points.float().cuda()), 0.000001)
+        if torch.any(dist2.isinf()):
+            dist2 = torch.where(dist2.isinf(), 10., dist2)
+
+        scales = torch.log(torch.sqrt(dist2)*0.1)[...,None].repeat(1, 3)[:, :2]
         rots = torch.zeros((sample_xy.shape[0], 1), device="cuda").float().cuda()
 
         opacities = self.inverse_opacity_activation(0.5 * torch.ones((sample_xy.shape[0], 1), dtype=torch.float, device="cuda"))
