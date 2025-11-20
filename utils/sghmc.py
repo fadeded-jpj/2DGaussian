@@ -91,6 +91,26 @@ class AdamSGHMC(Optimizer):
 
                 base = torch.zeros_like(exp_avg)
                 adam_gradient = torch.addcdiv(base, exp_avg, denom, value=-step_size)
+
+                # print("####### sghmc ###############")
+                # if group['name'] == 'opacity':
+                #     print("opa:", parameter.data.max())
+
+                # if group['name'] == 'scaling':
+                #     print("sca:", parameter.data.max())
+
+                # if group['name'] == 'rgb':
+                #     print("rgb:", parameter.data.max())
+
+                # if group['name'] == 'rotation':
+                #     print("rot:", parameter.data.max())
+
+                # if group['name'] == 'negative':
+                #     print("nega:", parameter.data.max())
+
+                # print("####### end ###############")
+
+
                 if group['name'] != 'xyz':
                     parameter.data.add_(group['lr'] * adam_gradient)
                     continue

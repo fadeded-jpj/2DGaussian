@@ -70,10 +70,15 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         image = render_pkg["render"]
 
         if iteration % 10 == 0:
-            print(" cur opa max:", primitives.get_opacity.max())
-            print(" point color max:", primitives.get_rgb.max())
-            print(" color max:", image.max())
-            print("scale:", primitives.get_scaling.max())
+            # print(" cur opa max:", primitives.get_opacity.max())
+            # print(" point color max:", primitives.get_rgb.max())
+            # print(" color max:", image.max())
+            # print("scale:", primitives.get_scaling.max())
+            print("xyz: ", primitives._xyz.max())
+            print("rgb:", primitives._rgb.max())
+            print("opa:", primitives._opacity.max())
+            print("scale:", primitives._scaling.max())
+            print("rot:", primitives._rotation.max())
 
 
         Ll1 = l1_loss(image, gt_image)
@@ -85,12 +90,13 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
         loss.backward()
 
-        print("xyz grad:", primitives._xyz.grad)
-        print("opa grad:", primitives._opacity.grad)
-        print("rgb grad:", primitives._rgb.grad)
-        print("sca grad:", primitives._scaling.grad)
-        print("rot grad:", primitives._rotation.grad)
-        print("neg grad:", primitives._negative.grad)
+        if iteration % 10 == 0:
+            print("xyz grad:", primitives._xyz.grad)
+            print("opa grad:", primitives._opacity.grad)
+            print("rgb grad:", primitives._rgb.grad)
+            print("sca grad:", primitives._scaling.grad)
+            print("rot grad:", primitives._rotation.grad)
+            print("neg grad:", primitives._negative.grad)
 
         iter_end.record()
 
