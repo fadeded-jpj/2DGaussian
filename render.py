@@ -59,5 +59,5 @@ if __name__ == "__main__":
         model_path = os.path.join(args.model_path, "point_cloud")
         save_iterations = searchForAllIteration(model_path)
         for iter in save_iterations:
-            print("render ours_{}", iter)
+            print("render ours_{}".format(iter))
             render_sets(model.extract(args), iter, pipeline.extract(args), args.skip_train, args.skip_test)

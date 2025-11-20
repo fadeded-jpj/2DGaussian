@@ -34,12 +34,9 @@ def write_exr_image(path, img : torch.Tensor):
     _, H, W = img.shape
     lightmap = img.permute(1, 2, 0).float().cpu().numpy()
 
-    print(img.shape)
     R = lightmap[:, :, 0].tobytes()
     G = lightmap[:, :, 1].tobytes()
     B = lightmap[:, :, 2].tobytes()
-
-    print("R max:", lightmap[:, :, 0].max())
 
     exr_file = OpenEXR.OutputFile(os.path.join(path, "img.exr"),
                                   OpenEXR.Header(W, H))

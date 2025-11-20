@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from utils.general_utils import inverse_sigmoid, get_expon_lr_func, build_rotation, inverse_tanh, inverse_translated_sigmoid, get_step_lr_func
+from utils.general_utils import inverse_sigmoid, get_expon_lr_func, build_rotation, inverse_tanh, inverse_translated_sigmoid, get_step_lr_func, no_change
 from torch import nn
 import os
 from utils.system_utils import mkdir_p
@@ -29,17 +29,21 @@ class Model:
             symm = strip_2D(actual_covariance_inv)
             return symm
 
-        self.scaling_activation = torch.exp
-        self.scaling_inverse_activation = torch.log
+        # self.scaling_activation = torch.log
+        # self.scaling_inverse_activation = torch.exp
+
+        self.scaling_activation = no_change
+        self.scaling_inverse_activation = no_change
 
         self.covariance_activation = build_covariance_from_scaling_rotation # translate
         self.covariance_inv_activation = build_covariance_inv_from_scaling_rotation
 
-        self.opacity_activation = torch.tanh
         # self.opacity_activation = torch.sigmoid
+        # self.inverse_opacity_activation = inverse_sigmoid
+        self.opacity_activation = torch.tanh
         self.inverse_opacity_activation = inverse_tanh
 
-        self.rotation_activation = torch.nn.functional.normalize
+        # self.rotation_activation = torch.nn.functional.normalize
 
         # NOTE: make sure freedom of degree is always >= 1.0f
         self.nu_degree_activation = nn.Hardtanh(1, 10000)
@@ -147,7 +151,7 @@ class Model:
 
     @property
     def get_rotation(self):
-        return self.rotation_activation(self._rotation)
+        return self._rotation
 
     def get_cov(self):
         return self.covariance_activation(self.get_scaling, self.get_rotation)
@@ -394,9 +398,9 @@ class Model:
 
     def _sample_alives(self, probs, num, alive_indices=None):
             # 添加调试信息
-        print(f"probs shape: {probs.shape}")
-        print(f"probs min: {probs.min()}, max: {probs.max()}")
-        print(f"probs sum: {probs.sum()}")
+        # print(f"probs shape: {probs.shape}")
+        # print(f"probs min: {probs.min()}, max: {probs.max()}")
+        # print(f"probs sum: {probs.sum()}")
 
     # # 检查 NaN 和 Inf
     #     if torch.isnan(probs).any():
@@ -469,9 +473,7 @@ class Model:
         if num_gs <= 0:
             return 0
 
-        print("opa", self.get_opacity)
         probs = self.get_opacity.squeeze(-1)
-        print("probs", probs)
         add_idx, ratio = self._sample_alives(probs=probs, num=num_gs)
 
         (

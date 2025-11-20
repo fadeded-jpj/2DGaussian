@@ -1,0 +1,9 @@
+{
+    "resolution": 4,
+    "cap_max": 16384,
+    "nu_degree": 100,
+    "C_burnin": 5e8,
+    "C": 1.2e2,
+    "burnin_iterations": 5000,
+    "iterations": 10000
+}
