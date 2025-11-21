@@ -10,7 +10,7 @@ if __name__ == "__main__":
     parser.add_argument('--detect_anomaly', action='store_true', default=False)
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--time", type=int, default=0)
-    parser.add_argument("--data_path", type=str, default="E:\\tx contest\\HPRC_Test1\\Data\\Data_HPRC")
+    parser.add_argument("--data_path", type=str, default="..\\HPRC_Test1\\Data\\Data_HPRC")
     args = parser.parse_args(sys.argv[1:])
 
     read_image_from_data(args.data_path, time=args.time)

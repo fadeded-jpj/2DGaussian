@@ -2,12 +2,12 @@ import torch
 from scene import Scene
 from arguments import ModelParams, ArgumentParser, OptimizationParams, PipelineParams
 from scene.gaussian_models import Model
-from utils.image_utils import read_image_from_data, psnr
+from utils.image_utils import read_image_from_data, psnr, write_exr_image
 import sys
 from utils.general_utils import safe_state, get_expon_lr_func
 from tqdm import tqdm
 from renderer import render
-from utils.loss_utils import l1_loss, ssim, DWT_loss
+from utils.loss_utils import l1_loss, ssim, DWT_loss, l1_loss_part
 from scene.gaussian_models import build_scaling_rotation
 from utils.general_utils import safe_state, op_sigmoid
 import json
@@ -24,6 +24,7 @@ from os import makedirs
 import torchvision.transforms.functional as tf
 from argparse import ArgumentParser, Namespace
 from lpipsPyTorch import lpips
+from utils.test_utils import test
 
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 
@@ -52,12 +53,13 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     gt_image = offset * gt_image
 
     resoulation = (gt_image.shape[1], gt_image.shape[2])
-    # image = torch.ones_like(gt_image)
-    # print("xyz: ", primitives.get_xyz)
-    # print("rgb:", primitives.get_rgb)
-    # print("opa:", primitives.get_opacity)
-    # print("scale:", primitives.get_scaling)
-    # print("rot:", primitives.get_rotation)
+    image = torch.ones_like(gt_image.max())
+    print("xyz: ", primitives.get_xyz.max())
+    print("rgb:", primitives.get_rgb.max())
+    print("opa:", primitives.get_opacity.max())
+    print("scale:", primitives.get_scaling.max())
+    print("rot:", primitives.get_rotation.max())
+    print("gt max:", gt_image.max())
 
     for iteration in range(first_iter, opt.iterations + 1):
         iter_start.record()
@@ -70,33 +72,28 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
         image = render_pkg["render"]
 
+        if iteration == 1:
+            with torch.no_grad():
+                write_exr_image("output", image, "1.exr")
+
+        # print("\n point color max:", primitives.get_rgb.max())
+        # print(" pixel color max:", image.max())
         # if iteration % 10 == 0:
         #     # print(" cur opa max:", primitives.get_opacity.max())
         #     # print(" point color max:", primitives.get_rgb.max())
         #     # print(" color max:", image.max())
         #     # print("scale:", primitives.get_scaling.max())
-        #     print("xyz: ", primitives._xyz.max())
-        #     print("rgb:", primitives._rgb.max())
-        #     print("opa:", primitives._opacity.max())
-        #     print("scale:", primitives._scaling.max())
+        #     print("xyz: ", primitives.get_xyz.max())
+        #     print("rgb:", primitives.get_rgb.max())
+        #     print("opa:", primitives.get_opacity.max())
+        #     print("scale:", primitives.get_scaling.max())
         #     print("rot:", primitives._rotation.max())
 
 
         Ll1 = l1_loss(image, gt_image)
         loss = (1.0 - opt.lambda_dssim - opt.lambda_fre) * Ll1 + (opt.lambda_dssim - opt.lambda_fre) * (1.0 - ssim(image, gt_image)) + opt.lambda_fre * DWT_loss(image, gt_image)
 
-        # loss = loss + args.opacity_reg * torch.abs(primitives.get_opacity).mean()
-        # loss = loss + args.scale_reg * torch.abs(primitives.get_scaling).mean()
-
         loss.backward()
-
-        # if iteration % 10 == 0:
-        #     print("xyz grad:", primitives._xyz.grad)
-        #     print("opa grad:", primitives._opacity.grad)
-        #     print("rgb grad:", primitives._rgb.grad)
-        #     print("sca grad:", primitives._scaling.grad)
-        #     print("rot grad:", primitives._rotation.grad)
-        #     print("neg grad:", primitives._negative.grad)
 
         iter_end.record()
 
@@ -134,9 +131,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
                 # scene.update_opacity(opt.dropout)
                 scene.save(iteration)
-                print("\n psnr:{}".format(psnr(image, gt_image).mean()))
-                print("\n ssim:{}".format(ssim(image, gt_image).mean()))
-                print("\n lpips:{}".format(lpips(image, gt_image, net_type='vgg').mean()))
+                test(gt_image.unsqueeze(0), image.unsqueeze(0))
+                write_exr_image("output", image)
+
 
             if iteration < opt.densify_until_iter and iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
                 dead_mask = (primitives.get_opacity < dataset.opacity_threshold).squeeze(-1)
@@ -207,7 +204,7 @@ if __name__ == "__main__":
     parser.add_argument('--debug_from', type=int, default=-1)
     parser.add_argument('--detect_anomaly', action='store_true', default=False)
     parser.add_argument("--test_iterations", nargs="+", type=int, default=[7_000])
-    parser.add_argument("--save_iterations", nargs="+", type=int, default=[1000, 5_000])
+    parser.add_argument("--save_iterations", nargs="+", type=int, default=[100, 1000, 5_000])
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[])
     parser.add_argument("--start_checkpoint", type=str, default = None)

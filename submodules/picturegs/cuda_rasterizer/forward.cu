@@ -198,14 +198,14 @@ renderCUDA(const float* negative,
 			float alpha = min(0.99f, con_o.w * exp(power))*negative[collected_id[j]];
 			if (alpha < 1.0f / 255.0f)
 				continue;
-			float test_T = T - alpha;
-			
-			if (test_T < 0.0001f)
-			{
-				done = true;
-				continue;
-			}
-			T = test_T;
+			// float test_T = T - alpha;
+
+			// if (test_T < 0.0001f)
+			// {
+			// 	done = true;
+			// 	continue;
+			// }
+			// T = test_T;
 
 			// Eq. (3) from 3D Gaussian splatting paper.
 			for (int ch = 0; ch < CHANNELS; ch++)

@@ -15,10 +15,32 @@ from torch.autograd import Variable
 from math import exp
 import ptwt
 from utils.general_utils import normalize
+from utils.test_utils import cal_psnr
+import numpy as np
 
 
 def l1_loss(network_output, gt):
     return torch.abs((network_output - gt)).mean()
+
+def l1_loss_part(image : torch.Tensor, gt  : torch.Tensor, part_size=256):
+    psnr_list = 0.0
+    image = image.unsqueeze(0)
+    gt = gt.unsqueeze(0)
+    rows = (gt.shape[2] + part_size - 1) // part_size
+    cols = (gt.shape[3] + part_size - 1) // part_size
+    for i in range(rows):
+        for j in range(cols):
+            start_row = i * part_size
+            end_row = min((i + 1) * part_size, gt.shape[2])
+            start_col = j * part_size
+            end_col = min((j + 1) * part_size, gt.shape[3])
+
+            gt_part = gt[:, :, start_row:end_row, start_col:end_col]
+            image_part = image[:, :,start_row:end_row, start_col:end_col]
+
+            psnr_list += l1_loss(gt_part, image_part)
+
+    return psnr_list / (part_size ** 2)
 
 def l2_loss(network_output, gt):
     return ((network_output - gt) ** 2).mean()

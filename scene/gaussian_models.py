@@ -37,14 +37,16 @@ class Model:
 
         self.rotation_activation = torch.sigmoid
         self.rotation_inverse_activation = inverse_sigmoid
+        # self.rotation_activation = nn.Hardtanh(0, 100)
+        # self.rotation_inverse_activation = nn.Hardtanh(0, 100)
 
         self.covariance_activation = build_covariance_from_scaling_rotation # translate
         self.covariance_inv_activation = build_covariance_inv_from_scaling_rotation
 
-        # self.opacity_activation = torch.sigmoid
-        # self.inverse_opacity_activation = inverse_sigmoid
-        self.opacity_activation = torch.tanh
-        self.inverse_opacity_activation = inverse_tanh
+        self.opacity_activation = torch.sigmoid
+        self.inverse_opacity_activation = inverse_sigmoid
+        # self.opacity_activation = torch.tanh
+        # self.inverse_opacity_activation = inverse_tanh
 
         # self.rotation_activation = torch.nn.functional.normalize
 
@@ -79,9 +81,7 @@ class Model:
             l.append('scale_{}'.format(i))
         for i in range(self._rotation.shape[1]):
             l.append('rot_{}'.format(i))
-
         l.append('negative')
-
         return l
 
     def save(self, path):
@@ -132,7 +132,7 @@ class Model:
         self._rotation = nn.Parameter(torch.tensor(rots, dtype=torch.float, device="cuda").requires_grad_(True))
 
         negatives = np.asarray(plydata.elements[0]["negative"])[..., np.newaxis]
-        self._negative = nn.Parameter(torch.tensor(negatives, dtype=torch.float, device="cuda").requires_grad_(False))
+        self._negative = nn.Parameter(torch.tensor(negatives, dtype=torch.float, device="cuda"))
 
 
     @property

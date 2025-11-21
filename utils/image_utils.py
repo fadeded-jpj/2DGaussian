@@ -33,10 +33,11 @@ def mse(img1, img2):
     return (((img1 - img2)) ** 2).view(img1.shape[0], -1).mean(1, keepdim=True)
 
 def psnr(img1, img2):
+
     mse = (((img1 - img2)) ** 2).view(img1.shape[0], -1).mean(1, keepdim=True)
     return 20 * torch.log10(1.0 / torch.sqrt(mse))
 
-def write_exr_image(path, img : torch.Tensor):
+def write_exr_image(path, img : torch.Tensor, name="img.exr"):
      # 你可以将这些数据保存为exr文件以供查看：
     _, H, W = img.shape
     lightmap = img.permute(1, 2, 0).float().cpu().numpy()
@@ -45,7 +46,7 @@ def write_exr_image(path, img : torch.Tensor):
     G = lightmap[:, :, 1].tobytes()
     B = lightmap[:, :, 2].tobytes()
 
-    exr_file = OpenEXR.OutputFile(os.path.join(path, "img.exr"),
+    exr_file = OpenEXR.OutputFile(os.path.join(path, name),
                                   OpenEXR.Header(W, H))
     exr_file.writePixels({'R': R, 'G': G, 'B': B})
     exr_file.close()

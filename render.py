@@ -24,11 +24,11 @@ def render_set(model_path, iteration, primitives, pipeline, gt_image):
     bg = torch.zeros(3)
     render_pkg = render(primitives, pipeline, bg, resoulation)
     rendering = render_pkg["render"]
-    print(rendering.max())
 
     write_exr_image(render_path, rendering)
     write_exr_image(gts_path, gt_image)
     exr_to_png_opencv(rendering, render_path)
+    exr_to_png_opencv(gt_image, gts_path)
 
 def render_sets(dataset : ModelParams, iteration : int, pipeline : PipelineParams, skip_train : bool, skip_test : bool):
     with torch.no_grad():
