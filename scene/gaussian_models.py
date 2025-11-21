@@ -75,13 +75,12 @@ class Model:
 
     def construct_list_of_attributes(self):
         l = ['x', 'y', 'r', 'g', 'b']
-
         l.append('opacity')
         for i in range(self._scaling.shape[1]):
             l.append('scale_{}'.format(i))
         for i in range(self._rotation.shape[1]):
             l.append('rot_{}'.format(i))
-        l.append('negative')
+        # l.append('negative')
         return l
 
     def save(self, path):
@@ -98,7 +97,8 @@ class Model:
         dtype_full = [(attribute, 'f4') for attribute in self.construct_list_of_attributes()]
 
         elements = np.empty(xyz.shape[0], dtype=dtype_full)
-        attributes = np.concatenate((xyz, color, opacities, scale, rotation, negative), axis=1)
+        attributes = np.concatenate((xyz, color, opacities, scale, rotation), axis=1)
+        print(attributes.size)
         elements[:] = list(map(tuple, attributes))
         el = PlyElement.describe(elements, 'vertex')
         PlyData([el]).write(path)
@@ -131,8 +131,10 @@ class Model:
         self._scaling = nn.Parameter(torch.tensor(scales, dtype=torch.float, device="cuda").requires_grad_(True))
         self._rotation = nn.Parameter(torch.tensor(rots, dtype=torch.float, device="cuda").requires_grad_(True))
 
-        negatives = np.asarray(plydata.elements[0]["negative"])[..., np.newaxis]
-        self._negative = nn.Parameter(torch.tensor(negatives, dtype=torch.float, device="cuda"))
+        # negative = np.asarray(plydata.elements[0]["negative"])[..., np.newaxis]
+        # self._negative = nn.Parameter(torch.tensor(negative, dtype=torch.float, device="cuda")).requires_grad_(True)
+        negatives = torch.ones_like(self._opacity).float().cuda()
+        self._negative = nn.Parameter(negatives).requires_grad_(True)
 
 
     @property
