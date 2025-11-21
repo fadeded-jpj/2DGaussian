@@ -6,7 +6,7 @@ import random
 import json
 from utils.system_utils import searchForMaxIteration
 from arguments import ModelParams
-from utils.image_utils import read_images, get_image_color, create_image_tensor, plot_tensor_image
+from utils.image_utils import read_images, get_image_color, create_image_tensor, plot_tensor_image, Image_source
 import torch
 
 from scene.gaussian_models import Model
@@ -21,7 +21,7 @@ class Scene:
         self.model_path = args.model_path
         self.loaded_iter = None
         self.primitives = primitives
-        self.images = read_images(os.path.join(args.source_path))
+        self.images = read_images(os.path.join(args.source_path), args.id, args.time)
         _, H, W = self.images.images.shape
 
         if load_iteration:

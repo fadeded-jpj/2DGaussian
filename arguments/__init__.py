@@ -65,6 +65,8 @@ class ModelParams(ParamGroup):
         self.C = 1e2
         self.burnin_iterations = 7000
         self.opacity_threshold = 0.005
+        self.id = 0
+        self.time = 0
 
         super().__init__(parser, "Loading Parameters", sentinel)
 

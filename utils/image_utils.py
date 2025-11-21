@@ -16,11 +16,18 @@ import numpy as np
 import OpenEXR
 import torchvision
 import Imath
-from scene.image_source import Image_source
 from matplotlib import pyplot as plt
 import torch.nn.functional as F
 import cv2
+from torch import nn
 
+
+class Image_source(nn.Module):
+    def __init__(self, image : torch.Tensor, id, time):
+        super(Image_source, self).__init__()
+        self.images = image
+        self.id = id
+        self.time = time
 
 def mse(img1, img2):
     return (((img1 - img2)) ** 2).view(img1.shape[0], -1).mean(1, keepdim=True)
@@ -44,6 +51,8 @@ def write_exr_image(path, img : torch.Tensor):
     exr_file.close()
 
 def read_image_from_data(dataset_path='E:\\tx contest\\HPRC_Test1\\Data\\Data_HPRC', time=0, config_file='config.json'):
+    save_path = os.path.join("data", str(time))
+    os.makedirs(save_path, exist_ok=True)
     with open(os.path.join(dataset_path, config_file), 'r', encoding='utf-8') as f:
         data = json.load(f)
 
@@ -71,10 +80,13 @@ def read_image_from_data(dataset_path='E:\\tx contest\\HPRC_Test1\\Data\\Data_HP
         lightmap = lightmap_data.reshape(resolution['height'], resolution['width'], 3)
         # mask每个像素有1通道
         mask = mask_data.reshape(resolution['height'], resolution['width'])
+        mask = torch.from_numpy(mask)
+        print(mask.shape)
+
 
         # mask数据为-1时，表示该数据为无效数据，为127时，表示该数据为有效数据
         # 获取有效lightmap数据可以这样做：
-        valid_lightmap = lightmap[mask >= 127]
+        # valid_lightmap = lightmap[mask >= 127]
 
         # 你可以将这些数据保存为exr文件以供查看：
         R = lightmap[:, :, 0].tobytes()
@@ -83,7 +95,7 @@ def read_image_from_data(dataset_path='E:\\tx contest\\HPRC_Test1\\Data\\Data_HP
 
         print("R max:", lightmap[:, :, 0].max())
 
-        exr_file = OpenEXR.OutputFile(f'data\\lightmap_{id}_{time}.exr',
+        exr_file = OpenEXR.OutputFile(f'data\\{time}\\lightmap_{id}_{time}.exr',
                                   OpenEXR.Header(resolution['width'], resolution['height']))
         exr_file.writePixels({'R': R, 'G': G, 'B': B})
         exr_file.close()
@@ -108,9 +120,8 @@ def read_image_from_exr_to_tensor(exr_path):
     img = torch.from_numpy(img).float().permute(2, 0, 1)  # C, H, W
     return img
 
-def read_images(image_path, image_name='lightmap_0_0.exr'):
-    img_tensor = read_image_from_exr_to_tensor(os.path.join(image_path, image_name))
-    id, time = image_name.split('_')[1], image_name.split('_')[2].split('.')[0]
+def read_images(image_path, id=0, time=0):
+    img_tensor = read_image_from_exr_to_tensor(os.path.join(image_path, str(id), f'lightmap_{id}_{time}.exr'))
     img_sor = Image_source(img_tensor.cuda(), int(id), int(time))
 
     images = img_sor

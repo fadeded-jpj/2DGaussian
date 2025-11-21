@@ -211,8 +211,6 @@ if __name__ == "__main__":
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[])
     parser.add_argument("--start_checkpoint", type=str, default = None)
-    parser.add_argument("--mask", action="store_true", default=False)
-    parser.add_argument("--depth", action="store_true", default=False)
     args = parser.parse_args(sys.argv[1:])
 
     print("Optimizing " + args.model_path)
