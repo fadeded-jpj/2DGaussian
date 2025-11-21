@@ -37,7 +37,6 @@ def render_sets(dataset : ModelParams, iteration : int, pipeline : PipelineParam
         gt = scene.getImages().cuda()
         render_set(dataset.model_path, scene.loaded_iter, primitives, pipeline, gt)
 
-
 if __name__ == "__main__":
     # Set up command line argument parser
     parser = ArgumentParser(description="Testing script parameters")
@@ -47,11 +46,14 @@ if __name__ == "__main__":
     parser.add_argument("--skip_train", action="store_true")
     parser.add_argument("--skip_test", action="store_true")
     parser.add_argument("--quiet", action="store_true")
+    parser.add_argument("--id", type=int, default=-1)
+    parser.add_argument("--time", type=int, default=-1)
     args = get_combined_args(parser)
     print("Rendering " + args.model_path)
 
     # Initialize system state (RNG)
     safe_state(args.quiet)
+
 
     if args.iteration != -1:
         render_sets(model.extract(args), args.iteration, pipeline.extract(args), args.skip_train, args.skip_test)
@@ -61,3 +63,4 @@ if __name__ == "__main__":
         for iter in save_iterations:
             print("render ours_{}".format(iter))
             render_sets(model.extract(args), iter, pipeline.extract(args), args.skip_train, args.skip_test)
+

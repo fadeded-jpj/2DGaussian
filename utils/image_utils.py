@@ -122,7 +122,7 @@ def read_image_from_exr_to_tensor(exr_path):
     return img
 
 def read_images(image_path, id=0, time=0):
-    img_tensor = read_image_from_exr_to_tensor(os.path.join(image_path, str(time), f'lightmap_{id}_{time}.exr'))
+    img_tensor = read_image_from_exr_to_tensor(os.path.join(image_path, f'lightmap_{id}_{time}.exr'))
     img_sor = Image_source(img_tensor.cuda(), int(id), int(time))
 
     images = img_sor

@@ -14,7 +14,7 @@ class Scene:
 
     primitives : Model
 
-    def __init__(self, args : ModelParams, primitives : Model, load_iteration=None, shuffle=True, resolution_scales=[1.0], render=False):
+    def __init__(self, args : ModelParams, primitives : Model, load_iteration=None, shuffle=True, resolution_scales=[1.0], render=False, time=None, id=None):
         """b
         :param path: Path to colmap scene main folder.
         """
@@ -39,17 +39,26 @@ class Scene:
             sample_xy[:, 0] *= W
             sample_xy[:, 1] *= H
             self.primitives.create_from_samlpe_points(sample_xy, rgb, spatial_lr_scale=1.0, optimizer_type=args.optimizer_type)
-        else:
+        elif id is None:
             self.primitives.load_ply(os.path.join(self.model_path,
                                                            "point_cloud",
                                                            "iteration_" + str(self.loaded_iter),
                                                            "point_cloud.ply"))
+        else:
+            self.primitives.load_ply(os.path.join(self.model_path,
+                                                           f"{time}_{id}.ply"))
 
 
 
     def save(self, iteration):
         point_cloud_path = os.path.join(self.model_path, "point_cloud/iteration_{}".format(iteration))
         self.primitives.save(os.path.join(point_cloud_path, "point_cloud.ply"))
+
+
+    def save_for_rec(self):
+        point_cloud_path = os.path.join(self.model_path)
+        self.primitives.save(os.path.join(point_cloud_path, f"{self.images.time}_{self.images.id}.ply"))
+
 
     def update_opacity(self, dropout):
         op = self.primitives.get_opacity
