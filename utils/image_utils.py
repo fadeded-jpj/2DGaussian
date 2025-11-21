@@ -96,7 +96,8 @@ def read_image_from_data(dataset_path='E:\\tx contest\\HPRC_Test1\\Data\\Data_HP
 
         print("R max:", lightmap[:, :, 0].max())
 
-        exr_file = OpenEXR.OutputFile(f'data\\{time}\\lightmap_{id}_{time}.exr',
+
+        exr_file = OpenEXR.OutputFile(os.path.join('data', str(time), f'lightmap_{id}_{time}.exr'),
                                   OpenEXR.Header(resolution['width'], resolution['height']))
         exr_file.writePixels({'R': R, 'G': G, 'B': B})
         exr_file.close()
