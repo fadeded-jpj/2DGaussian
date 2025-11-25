@@ -10,6 +10,8 @@ from utils.image_utils import read_images, get_image_color, create_image_tensor,
 import torch
 
 from scene.gaussian_models import Model
+
+
 class Scene:
 
     primitives : Model
@@ -24,7 +26,7 @@ class Scene:
         self.images = read_images(os.path.join(args.source_path), args.id, args.time)
         _, H, W = self.images.images.shape
 
-        if load_iteration:
+        if load_iteration and id is None:
             if load_iteration == -1:
                 self.loaded_iter = searchForMaxIteration(os.path.join(self.model_path, "point_cloud"))
             else:
@@ -34,7 +36,7 @@ class Scene:
 
 
         if render is False:
-            sample_xy = get_sample_init_xy(n_points=4096 * 2).cuda() # N, 2  [0, 1]
+            sample_xy = get_sample_init_xy(n_points=4096 * 6).cuda() # N, 2  [0, 1]
             rgb = get_image_color(self.images, sample_xy).cuda() # N, 3
             sample_xy[:, 0] *= W
             sample_xy[:, 1] *= H
@@ -70,3 +72,11 @@ class Scene:
 
     def getImages(self):
         return self.images.images
+
+
+class Scene_for_Render:
+    primitives : Model
+    def __init__(self, model_path : str, primitives : Model, time=None, id=None, W=1024, H=512):
+        self.model_path = model_path
+        self.primitives = primitives
+        self.primitives.load_ply(os.path.join(self.model_path, f"{time}_{id}.ply"))

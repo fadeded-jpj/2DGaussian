@@ -10,7 +10,9 @@ lpips_fn = lpips.LPIPS(net='alex').to(device)
 
 def cal_psnr(lightmap, lightmap_reconstruct, mask=None):
     mse = torch.mean((lightmap[:, :, :] - lightmap_reconstruct[:, :, :]) ** 2)
+    print("mes:", mse)
     max_value = torch.max(lightmap[:, :, :])
+    print("max value:", max_value)
     psnr = 10 * torch.log10(max_value ** 2 / mse)
     return psnr.item()
 
@@ -74,6 +76,8 @@ def extract_numeric_value(value_str):
         raise ValueError(f"Cannot extract numeric value from: {value_str}")
 
 def test(gt, image):
+    print("gt shape:", gt.shape)
+    print("image shape", image.shape)
     with open('config.yaml', 'r', encoding='utf-8') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
         psnr_best_value = extract_numeric_value(config['metrics']['psnr']['best_value'])
@@ -93,6 +97,8 @@ def test(gt, image):
     part_size = 256
     rows = (gt.shape[2] + part_size - 1) // part_size
     cols = (gt.shape[3] + part_size - 1) // part_size
+    print("rows:", rows)
+    print("cols:", cols)
     for i in range(rows):
         for j in range(cols):
             start_row = i * part_size
@@ -107,7 +113,9 @@ def test(gt, image):
             ssim_list.append(cal_ssim(gt_part, image_part))
             lpips_list.append(cal_lpips(gt_part, image_part))
 
-
+    print("PSNR:", psnr_list)
+    print("SSIM:", ssim_list)
+    print("LPIPS:", lpips_list)
 
     psnr_score = ((np.clip(np.mean(psnr_list), psnr_worst_value, psnr_best_value) - psnr_worst_value) / (psnr_best_value - psnr_worst_value)) * 100
     ssim_score = ((np.clip(np.mean(ssim_list), ssim_worst_value, ssim_best_value) - ssim_worst_value) / (ssim_best_value - ssim_worst_value)) * 100

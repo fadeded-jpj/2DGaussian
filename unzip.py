@@ -21,7 +21,6 @@ def render_set(dataset : ModelParams, pipeline : PipelineParams, W, H, id, time)
         makedirs(render_path, exist_ok=True)
         bg = torch.zeros(3)
 
-
         render_pkg = render(primitives, pipeline, bg, [H, W])
         rendering = render_pkg["render"]
 

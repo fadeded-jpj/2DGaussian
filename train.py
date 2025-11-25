@@ -85,7 +85,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         #     # print("scale:", primitives.get_scaling.max())
         #     print("xyz: ", primitives.get_xyz.max())
         #     print("rgb:", primitives.get_rgb.max())
-        #     print("opa:", primitives.get_opacity.max())
+            # print("opa min:", primitives.get_opacity.min())
+            # print("opa max:", primitives.get_opacity.max())
         #     print("scale:", primitives.get_scaling.max())
         #     print("rot:", primitives._rotation.max())
 
@@ -132,7 +133,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 # scene.update_opacity(opt.dropout)
                 scene.save_for_rec()
                 test(gt_image.unsqueeze(0), image.unsqueeze(0))
-                write_exr_image("output", image)
+                # write_exr_image("output", image)
 
 
             if iteration < opt.densify_until_iter and iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
