@@ -12,7 +12,7 @@ if __name__ == '__main__':
     # 所有大赛使用的数据集
     data_set_list = ['Data_HPRC']
     # test_time = list(range(24)) + [5.9, 18.1]
-    test_time = [0]
+    test_time = [0, 1, 12]
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     with open('config.yaml', 'r', encoding='utf-8') as f:
@@ -62,7 +62,7 @@ if __name__ == '__main__':
                     # 计算推理时间
                     torch.cuda.synchronize()
                     time_start = time.time()
-                    your_interface.reconstruct(current_time)
+                    your_interface.reconstruct(current_time * 100)
 
                     # 获取重建结果
                     lightmap_reconstruct = your_interface.get_result()
@@ -120,12 +120,12 @@ if __name__ == '__main__':
                                 lpips_list.append(Utils.cal_lpips(lightmap_part, lightmap_reconstruct_part))
 
         # 获取模型大小，用于计算压缩率
-        model_size = Utils.get_folder_size('./output') * 26 * 7 / 9
+        model_size = Utils.get_folder_size('./output') * 26 * 7 / 9 / 3
 
         psnr_score = ((np.clip(np.mean(psnr_list), psnr_worst_value, psnr_best_value) - psnr_worst_value) / (psnr_best_value - psnr_worst_value)) * 100
         ssim_score = ((np.clip(np.mean(ssim_list), ssim_worst_value, ssim_best_value) - ssim_worst_value) / (ssim_best_value - ssim_worst_value)) * 100
         lpips_score = ((lpips_worst_value - np.clip(np.mean(lpips_list), lpips_best_value, lpips_worst_value)) / (lpips_worst_value - lpips_best_value)) * 100
-        time_score = (time_worst_value - (np.clip(np.sum(time_list) * 26, time_best_value, time_worst_value))) / (time_worst_value - time_best_value) * 100
+        time_score = (time_worst_value - (np.clip(np.sum(time_list) * 26 / 3, time_best_value, time_worst_value))) / (time_worst_value - time_best_value) * 100
         compression_score = (compression_worst_value - np.clip(model_size / data_size, compression_best_value, compression_worst_value)) / (compression_worst_value - compression_best_value) * 100
         weighted_score = 0.05 * psnr_score + 0.05 * ssim_score + 0.05 * lpips_score + 0.2 * compression_score + 0.15 * time_score
 

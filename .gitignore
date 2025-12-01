@@ -27,3 +27,6 @@ wheels/
 *.exr
 *.pyc
 *.bat
+*.ply
+*.rar
+supplement/

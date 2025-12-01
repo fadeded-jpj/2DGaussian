@@ -14,11 +14,12 @@ class BasicInterface:
 
         self.scene = {}
         # test_time = list(range(24)) + [5.9, 18.1]
-        test_time = [0]
+        test_time = [16]
 
         for time in test_time:
             time = int(time * 100)
-            ply_path = os.path.join("output", str(time))
+            ply_path = os.path.join("supplement", str(time))
+            # ply_path = os.path.join("supplement", 'test')
 
             primitives = Model()
             self.scene[time] = Scene_for_Render(ply_path, primitives, time=time, id=self.id)

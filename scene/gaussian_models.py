@@ -111,7 +111,8 @@ class Model:
         rgb = np.stack((np.asarray(plydata.elements[0]["r"]),
                         np.asarray(plydata.elements[0]["g"]),
                         np.asarray(plydata.elements[0]["b"])), axis=1)
-        opacities = np.asarray(plydata.elements[0]["opacity"])[..., np.newaxis]
+        # opacities = np.asarray(plydata.elements[0]["opacity"])[..., np.newaxis]
+        opacities = self.inverse_opacity_activation(torch.ones(len(xyz), 1).float().cuda())
 
         scale_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("scale_")]
         scale_names = sorted(scale_names, key = lambda x: int(x.split('_')[-1]))
@@ -127,7 +128,8 @@ class Model:
 
         self._xyz = nn.Parameter(torch.tensor(xyz, dtype=torch.float, device="cuda").requires_grad_(True))
         self._rgb = nn.Parameter(torch.tensor(rgb, dtype=torch.float, device="cuda").requires_grad_(True))
-        self._opacity = nn.Parameter(torch.tensor(opacities, dtype=torch.float, device="cuda").requires_grad_(True))
+        # self._opacity = nn.Parameter(torch.tensor(opacities, dtype=torch.float, device="cuda").requires_grad_(True))
+        self._opacity = nn.Parameter(opacities.requires_grad_(True))
         self._scaling = nn.Parameter(torch.tensor(scales, dtype=torch.float, device="cuda").requires_grad_(True))
         self._rotation = nn.Parameter(torch.tensor(rots, dtype=torch.float, device="cuda").requires_grad_(True))
 
