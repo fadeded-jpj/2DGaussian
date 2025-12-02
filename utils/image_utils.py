@@ -14,7 +14,6 @@ import json
 import os
 import numpy as np
 import OpenEXR
-import torchvision
 import Imath
 from matplotlib import pyplot as plt
 import torch.nn.functional as F

@@ -12,7 +12,7 @@ if __name__ == '__main__':
     # 所有大赛使用的数据集
     data_set_list = ['Data_HPRC']
     # test_time = list(range(24)) + [5.9, 18.1]
-    test_time = [0, 1, 12]
+    test_time = [0]
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     with open('config.yaml', 'r', encoding='utf-8') as f:

@@ -14,7 +14,7 @@ class BasicInterface:
 
         self.scene = {}
         # test_time = list(range(24)) + [5.9, 18.1]
-        test_time = [16]
+        test_time = [0]
 
         for time in test_time:
             time = int(time * 100)

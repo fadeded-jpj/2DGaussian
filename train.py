@@ -44,6 +44,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     ema_loss_for_log = 0.0
     ema_Ll1depth_for_log = 0.0
 
+    pixels = scene.getImages().shape[1] * scene.getImages().shape[2]
+    args.cap_max = int(30_000 * (pixels / (2048 * 1024)))
+
     progress_bar = tqdm(range(first_iter, opt.iterations), desc="Training progress")
     first_iter += 1
 
@@ -133,7 +136,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 # scene.update_opacity(opt.dropout)
                 scene.save_for_rec()
                 test(gt_image.unsqueeze(0), image.unsqueeze(0))
-                # write_exr_image("output", image)
+                write_exr_image("output", image)
 
 
             if iteration < opt.densify_until_iter and iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:

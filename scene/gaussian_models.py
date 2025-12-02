@@ -5,8 +5,6 @@ from torch import nn
 import os
 from utils.system_utils import mkdir_p
 from plyfile import PlyData, PlyElement
-from utils.sh_utils import RGB2SH
-from utils.graphics_utils import BasicPointCloud
 from utils.general_utils import strip_symmetric, build_scaling_rotation, strip_2D
 from utils.reloc_utils import compute_relocation_cuda
 from utils.sghmc import AdamSGHMC
@@ -35,10 +33,10 @@ class Model:
         # self.scaling_activation = no_change
         # self.scaling_inverse_activation = no_change
 
-        self.rotation_activation = torch.sigmoid
-        self.rotation_inverse_activation = inverse_sigmoid
-        # self.rotation_activation = nn.Hardtanh(0, 100)
-        # self.rotation_inverse_activation = nn.Hardtanh(0, 100)
+        # self.rotation_activation = torch.sigmoid
+        # self.rotation_inverse_activation = inverse_sigmoid
+        self.rotation_activation = nn.Hardtanh(-200, 200)
+        self.rotation_inverse_activation = nn.Hardtanh(-200, 200)
 
         self.covariance_activation = build_covariance_from_scaling_rotation # translate
         self.covariance_inv_activation = build_covariance_inv_from_scaling_rotation
@@ -75,7 +73,6 @@ class Model:
 
     def construct_list_of_attributes(self):
         l = ['x', 'y', 'r', 'g', 'b']
-        l.append('opacity')
         for i in range(self._scaling.shape[1]):
             l.append('scale_{}'.format(i))
         for i in range(self._rotation.shape[1]):
@@ -92,13 +89,14 @@ class Model:
         opacities = self._opacity.detach().cpu().numpy()
         scale = self._scaling.detach().cpu().numpy()
         rotation = self._rotation.detach().cpu().numpy()
-        negative = self._negative.detach().cpu().numpy()
+
+        color = torch.from_numpy(color).reshape(-1, 3).float().cuda() * torch.sigmoid(torch.from_numpy(opacities).float().cuda())
+        color = color.detach().cpu().numpy()
 
         dtype_full = [(attribute, 'f4') for attribute in self.construct_list_of_attributes()]
 
         elements = np.empty(xyz.shape[0], dtype=dtype_full)
-        attributes = np.concatenate((xyz, color, opacities, scale, rotation), axis=1)
-        print(attributes.size)
+        attributes = np.concatenate((xyz, color, scale, rotation), axis=1)
         elements[:] = list(map(tuple, attributes))
         el = PlyElement.describe(elements, 'vertex')
         PlyData([el]).write(path)
@@ -120,7 +118,7 @@ class Model:
         for idx, attr_name in enumerate(scale_names):
             scales[:, idx] = np.asarray(plydata.elements[0][attr_name])
 
-        rot_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("rot")]
+        rot_names = [p.name for p in plydata.elements[0].properties if p.name.startswith("rot_")]
         rot_names = sorted(rot_names, key = lambda x: int(x.split('_')[-1]))
         rots = np.zeros((xyz.shape[0], len(rot_names)))
         for idx, attr_name in enumerate(rot_names):

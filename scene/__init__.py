@@ -26,6 +26,8 @@ class Scene:
         self.images = read_images(os.path.join(args.source_path), args.id, args.time)
         _, H, W = self.images.images.shape
 
+        init_ratio = int((2048 * 1024) / (H * W))
+
         if load_iteration and id is None:
             if load_iteration == -1:
                 self.loaded_iter = searchForMaxIteration(os.path.join(self.model_path, "point_cloud"))
@@ -34,9 +36,8 @@ class Scene:
             print("Loading trained model at iteration {}".format(self.loaded_iter))
 
 
-
         if render is False:
-            sample_xy = get_sample_init_xy(n_points=4096 * 6).cuda() # N, 2  [0, 1]
+            sample_xy = get_sample_init_xy(n_points=int(4096 * 6 / init_ratio)).cuda() # N, 2  [0, 1]
             rgb = get_image_color(self.images, sample_xy).cuda() # N, 3
             sample_xy[:, 0] *= W
             sample_xy[:, 1] *= H
