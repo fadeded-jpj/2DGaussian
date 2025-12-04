@@ -26,6 +26,7 @@ class Scene:
         self.images = read_images(os.path.join(args.source_path), args.id, args.time)
         _, H, W = self.images.images.shape
 
+        cap_max = int(args.cap_max / max(1, torch.log2(torch.tensor((2048 * 1024) / (H * W)))))
         init_ratio = int((2048 * 1024) / (H * W))
 
         if load_iteration and id is None:
@@ -37,7 +38,7 @@ class Scene:
 
 
         if render is False:
-            sample_xy = get_sample_init_xy(n_points=int(4096 * 6 / init_ratio)).cuda() # N, 2  [0, 1]
+            sample_xy = get_sample_init_xy(n_points=int(cap_max)).cuda() # N, 2  [0, 1]
             rgb = get_image_color(self.images, sample_xy).cuda() # N, 3
             sample_xy[:, 0] *= W
             sample_xy[:, 1] *= H

@@ -2,9 +2,9 @@ import torch
 import os
 import numpy as np
 
-from scene.gaussian_models import Model
+from scene.gaussian_models_for_render import Model
 from scene import Scene_for_Render
-from renderer import render
+from renderer import render_for_rec
 
 
 class BasicInterface:
@@ -32,7 +32,7 @@ class BasicInterface:
     def reconstruct(self, current_time):
         H, W = self.height, self.width
 
-        self.result = render(self.scene[current_time].primitives, None, torch.zeros(3).to(self.device), [H, W])["render"].to(self.device)
+        self.result = render_for_rec(self.scene[current_time].primitives, None, torch.zeros(3).to(self.device), [H, W])["render"].to(self.device)
 
     def get_result(self):
         print("self.result shape:", self.result.shape)

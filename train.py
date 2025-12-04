@@ -45,7 +45,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     ema_Ll1depth_for_log = 0.0
 
     pixels = scene.getImages().shape[1] * scene.getImages().shape[2]
-    args.cap_max = int(30_000 * (pixels / (2048 * 1024)))
+    args.cap_max = int(args.cap_max / max(1, torch.log2(torch.tensor((2048 * 1024) / pixels))))
 
     progress_bar = tqdm(range(first_iter, opt.iterations), desc="Training progress")
     first_iter += 1
