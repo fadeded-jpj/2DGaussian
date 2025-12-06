@@ -67,6 +67,7 @@ class ModelParams(ParamGroup):
         self.opacity_threshold = 0.005
         self.id = 0
         self.time = 0
+        self.level = ""
 
         super().__init__(parser, "Loading Parameters", sentinel)
 
@@ -94,7 +95,7 @@ class OptimizationParams(ParamGroup):
         self.feature_lr = 0.00025
         self.opacity_lr = 0.001
         self.scaling_lr = 0.001
-        self.rotation_lr = 0.000001
+        self.rotation_lr = 0.0001
         self.color_lr = 0.001
         self.percent_dense = 0.01
         self.lambda_dssim = 0.2
