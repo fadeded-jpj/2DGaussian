@@ -4,7 +4,7 @@ import numpy as np
 
 from scene.gaussian_models import Model
 from scene import Scene_for_Render
-from renderer import render
+from renderer_render import render
 
 
 class BasicInterface:
