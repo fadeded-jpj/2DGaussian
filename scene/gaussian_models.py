@@ -88,7 +88,7 @@ class Model:
         scale = self.get_scaling.detach().cpu().numpy()
         rotation = self.get_rotation.detach().cpu().numpy()
 
-        color = self.rgb * torch.sigmoid(self._opacity)
+        color = self._rgb * torch.sigmoid(self._opacity)
         color = color.detach().cpu().numpy()
 
         dtype_full = [(attribute, 'f4') for attribute in self.construct_list_of_attributes()]
