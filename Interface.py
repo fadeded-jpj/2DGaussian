@@ -2,15 +2,16 @@ import torch
 import os
 import numpy as np
 
-from scene.gaussian_models_for_render import Model
+from scene.gaussian_models import Model
 from scene import Scene_for_Render
-from renderer import render_for_rec
+from renderer import render
 
 
 class BasicInterface:
     def __init__(self, lightmap_config, device):
         self.device = device
         self.id = lightmap_config.get('id')
+        self.level = lightmap_config.get('level')
 
         self.scene = {}
         # test_time = list(range(24)) + [5.9, 18.1]
@@ -18,11 +19,11 @@ class BasicInterface:
 
         for time in test_time:
             time = int(time * 100)
-            ply_path = os.path.join("supplement", str(time))
+            ply_path = os.path.join("output", str(time))
             # ply_path = os.path.join("supplement", 'test')
 
             primitives = Model()
-            self.scene[time] = Scene_for_Render(ply_path, primitives, time=time, id=self.id)
+            self.scene[time] = Scene_for_Render(ply_path, primitives, time=time, id=self.id, level=self.level)
 
         resolution = lightmap_config['resolution']
         self.resolution = resolution
@@ -32,7 +33,7 @@ class BasicInterface:
     def reconstruct(self, current_time):
         H, W = self.height, self.width
 
-        self.result = render_for_rec(self.scene[current_time].primitives, None, torch.zeros(3).to(self.device), [H, W])["render"].to(self.device)
+        self.result = render(self.scene[current_time].primitives, None, torch.zeros(3).to(self.device), [H, W])["render"].to(self.device)
 
     def get_result(self):
         print("self.result shape:", self.result.shape)

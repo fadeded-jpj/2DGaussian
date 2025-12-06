@@ -1,8 +1,8 @@
 from argparse import ArgumentParser
 import torch
-from scene.gaussian_models_for_render import Model
+from scene.gaussian_models import Model
 from scene import Scene_for_Render
-from renderer import render_for_rec
+from renderer import render
 import os
 import plyfile
 import numpy as np
@@ -36,7 +36,7 @@ def get_image_score(ply_path, lightmap, time, id, resolution, mask):
 
     primitive = Model()
     scene = Scene_for_Render(ply_path, primitive, time=time, id=id)
-    lightmap_reconstruct = render_for_rec(primitive, None, torch.zeros(3), resolution)["render"].cuda().unsqueeze(0)
+    lightmap_reconstruct = render(primitive, None, torch.zeros(3), resolution)["render"].cuda().unsqueeze(0)
     lightmap_reconstruct[:, :, mask <= 0] = 0
 
     if id == 0:

@@ -83,14 +83,12 @@ class Model:
     def save(self, path):
         mkdir_p(os.path.dirname(path))
 
-        xyz = self.get_xyz.detach().cpu().numpy()
+        xyz = self._xyz.detach().cpu().numpy()
         # xyz = torch.cat([xyz, torch.zeros(xyz.shape[0], 1, device="cuda")], dim=1).cpu().numpy()
-        color = self.get_rgb.detach().cpu().numpy()
-        opacities = self.get_opacity.detach().cpu().numpy()
         scale = self.get_scaling.detach().cpu().numpy()
         rotation = self.get_rotation.detach().cpu().numpy()
 
-        color = torch.from_numpy(color).reshape(-1, 3).float().cuda() * torch.from_numpy(opacities).float().cuda()
+        color = self.rgb * torch.sigmoid(self._opacity)
         color = color.detach().cpu().numpy()
 
         dtype_full = [(attribute, 'f4') for attribute in self.construct_list_of_attributes()]

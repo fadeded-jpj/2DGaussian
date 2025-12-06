@@ -16,18 +16,17 @@ class Scene:
 
     primitives : Model
 
-    def __init__(self, args : ModelParams, primitives : Model, load_iteration=None, shuffle=True, resolution_scales=[1.0], render=False, time=None, id=None):
+    def __init__(self, args : ModelParams, primitives : Model, load_iteration=None, shuffle=True, resolution_scales=[1.0], render=False, time=None, id=None,level =None):
         """b
         :param path: Path to colmap scene main folder.
         """
         self.model_path = args.model_path
         self.loaded_iter = None
         self.primitives = primitives
-        self.images = read_images(os.path.join(args.source_path), args.id, args.time)
+        self.images = read_images(os.path.join(args.source_path), args.id, args.time,args.level)
         _, H, W = self.images.images.shape
 
-        cap_max = int(args.cap_max / max(1, torch.log2(torch.tensor((2048 * 1024) / (H * W)))))
-        init_ratio = int((2048 * 1024) / (H * W))
+
 
         if load_iteration and id is None:
             if load_iteration == -1:
@@ -38,7 +37,17 @@ class Scene:
 
 
         if render is False:
-            sample_xy = get_sample_init_xy(n_points=int(cap_max)).cuda() # N, 2  [0, 1]
+            # sample_xy = get_sample_init_xy(n_points=int(4096 * 6 *(4*(1/ init_ratio)/9+5/9))).cuda() # N, 2  [0, 1]
+            args.cap_max = int(25_000)
+            if(H * W==512*1024):
+                args.cap_max = int(18_000)
+            if(H * W==256*512):
+                args.cap_max = int(10000)
+            if(H * W==128*256):
+                args.cap_max = int(5000)
+            if(H * W==64*128):
+                args.cap_max = int(3000)
+            sample_xy = get_sample_init_xy(n_points=int(  args.cap_max )).cuda() # N, 2  [0, 1]
             rgb = get_image_color(self.images, sample_xy).cuda() # N, 3
             sample_xy[:, 0] *= W
             sample_xy[:, 1] *= H
@@ -50,7 +59,7 @@ class Scene:
                                                            "point_cloud.ply"))
         else:
             self.primitives.load_ply(os.path.join(self.model_path,
-                                                           f"{time}_{id}.ply"))
+                                                           f"{time}_{id}__{level}.ply"))
 
 
 
@@ -61,7 +70,7 @@ class Scene:
 
     def save_for_rec(self):
         point_cloud_path = os.path.join(self.model_path)
-        self.primitives.save(os.path.join(point_cloud_path, f"{self.images.time}_{self.images.id}.ply"))
+        self.primitives.save(os.path.join(point_cloud_path, f"{self.images.time}_{self.images.id}__{self.images.level}.ply"))
 
 
     def update_opacity(self, dropout):
@@ -78,7 +87,7 @@ class Scene:
 
 class Scene_for_Render:
     primitives : Model
-    def __init__(self, model_path : str, primitives : Model, time=None, id=None, W=1024, H=512):
+    def __init__(self, model_path : str, primitives : Model, time=None, id=None, level=None, W=1024, H=512):
         self.model_path = model_path
         self.primitives = primitives
-        self.primitives.load_ply(os.path.join(self.model_path, f"{time}_{id}.ply"))
+        self.primitives.load_ply(os.path.join(self.model_path, f"{time}_{id}__{level}.ply"))

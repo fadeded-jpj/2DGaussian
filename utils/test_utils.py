@@ -10,9 +10,9 @@ lpips_fn = lpips.LPIPS(net='alex').to(device)
 
 def cal_psnr(lightmap, lightmap_reconstruct, mask=None):
     mse = torch.mean((lightmap[:, :, :] - lightmap_reconstruct[:, :, :]) ** 2)
-    print("mes:", mse)
+    # print("mes:", mse)
     max_value = torch.max(lightmap[:, :, :])
-    print("max value:", max_value)
+    # print("max value:", max_value)
     psnr = 10 * torch.log10(max_value ** 2 / mse)
     return psnr.item()
 
@@ -113,9 +113,9 @@ def test(gt, image):
             ssim_list.append(cal_ssim(gt_part, image_part))
             lpips_list.append(cal_lpips(gt_part, image_part))
 
-    print("PSNR:", psnr_list)
-    print("SSIM:", ssim_list)
-    print("LPIPS:", lpips_list)
+    # print("PSNR:", psnr_list)
+    # print("SSIM:", ssim_list)
+    # print("LPIPS:", lpips_list)
 
     psnr_score = ((np.clip(np.mean(psnr_list), psnr_worst_value, psnr_best_value) - psnr_worst_value) / (psnr_best_value - psnr_worst_value)) * 100
     ssim_score = ((np.clip(np.mean(ssim_list), ssim_worst_value, ssim_best_value) - ssim_worst_value) / (ssim_best_value - ssim_worst_value)) * 100

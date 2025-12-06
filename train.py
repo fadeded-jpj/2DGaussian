@@ -57,12 +57,12 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
     resoulation = (gt_image.shape[1], gt_image.shape[2])
     image = torch.ones_like(gt_image.max())
-    print("xyz: ", primitives.get_xyz.max())
-    print("rgb:", primitives.get_rgb.max())
-    print("opa:", primitives.get_opacity.max())
-    print("scale:", primitives.get_scaling.max())
-    print("rot:", primitives.get_rotation.max())
-    print("gt max:", gt_image.max())
+    # print("xyz: ", primitives.get_xyz.max())
+    # print("rgb:", primitives.get_rgb.max())
+    # print("opa:", primitives.get_opacity.max())
+    # print("scale:", primitives.get_scaling.max())
+    # print("rot:", primitives.get_rotation.max())
+    # print("gt max:", gt_image.max())
 
     for iteration in range(first_iter, opt.iterations + 1):
         iter_start.record()

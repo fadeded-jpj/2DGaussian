@@ -8,7 +8,7 @@
  *
  * For inquiries contact  george.drettakis@inria.fr
  */
-
+#include<iostream>
 #include "forward.h"
 #include "auxiliary.h"
 #include <cooperative_groups.h>
@@ -18,7 +18,7 @@ namespace cg = cooperative_groups;
 
 __device__ void computeCov2D(const glm::vec2 scale, const float rot, float* cov2D)
 {
-	glm::mat2 S = glm::mat2(2.0f);
+	glm::mat2 S = glm::mat2(0.0f);
 	S[0][0] = scale.x;
 	S[1][1] = scale.y;
 
@@ -63,8 +63,7 @@ __global__ void preprocessCUDA(int P,
 	tiles_touched[idx] = 0;
 
 	computeCov2D(scales[idx], rots[idx], cov2Ds + idx * 3);
-	cov2Ds = cov2Ds + idx * 3;
-	float3 cov = { cov2Ds[0], cov2Ds[1],cov2Ds[2]};
+	float3 cov = { cov2Ds[3*idx+0], cov2Ds[3*idx+1],cov2Ds[3*idx+2]};
 	const float det_cov = cov.x * cov.z - cov.y * cov.y;
 	const float det = det_cov;
 
@@ -75,7 +74,6 @@ __global__ void preprocessCUDA(int P,
 	float3 conic = { cov.z * det_inv, -cov.y * det_inv, cov.x * det_inv };
 
 
-	float h_convolution_scaling = 1.0f;
 
 
 
@@ -103,10 +101,25 @@ __global__ void preprocessCUDA(int P,
 	points_xy_image[idx] = point_image;
 	// Inverse 2D covariance and opacity neatly pack into one float4
 	float opacity = opacities[idx];
-
-	conic_opacity[idx] ={ conic.x, conic.y, conic.z, opacity * h_convolution_scaling };
+    // if (idx < 10) {  // 打印前10个线程
+    //     printf("[Thread %d] opacity = %f\n", idx, opacity);
+    // }
+	conic_opacity[idx].w=opacity;
+	conic_opacity[idx].x=conic.x;
+	conic_opacity[idx].y=conic.y;
+	conic_opacity[idx].z=conic.z;
 
 	tiles_touched[idx] = (rect_max.y - rect_min.y) * (rect_max.x - rect_min.x);
+	//     if (idx < 5) {
+    //     printf("GPU [idx=%d]: scale=(%.6f,%.6f), rot=%.6f\n", 
+    //            idx, scales[idx].x, scales[idx].y, rots[idx]);
+    //     printf("GPU [idx=%d]: cov2D=(%.6f,%.6f,%.6f)\n", 
+    //            idx, cov2Ds[0], cov2Ds[1], cov2Ds[2]);
+    //     printf("GPU [idx=%d]: det=%.6f, det_inv=%.6f\n", 
+    //            idx, det, det_inv);
+    //     printf("GPU [idx=%d]: conic=(%.6f,%.6f,%.6f), opacity=%.6f\n", 
+    //            idx, conic.x, conic.y, conic.z, conic_opacity[idx].w);
+    // }
 }
 
 // Main rasterization method. Collaboratively works on one tile per
@@ -217,6 +230,11 @@ renderCUDA(const float* negative,
 			// Keep track of last range entry to update this
 			// pixel.
 			last_contributor = contributor;
+			if(j== min(BLOCK_SIZE, toDo)){
+				done=true;
+
+			}
+			
 		}
 	}
 

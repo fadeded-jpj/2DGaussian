@@ -129,7 +129,7 @@ CudaRasterizer::GeometryState CudaRasterizer::GeometryState::fromChunk(char*& ch
 	GeometryState geom;
 	obtain(chunk, geom.internal_radii, P, 128);
 	obtain(chunk, geom.means2D, P, 128);
-	obtain(chunk, geom.cov2D, P, 128);
+	obtain(chunk, geom.cov2D, P*3, 128);
 	obtain(chunk, geom.conic_opacity, P, 128);
 	obtain(chunk, geom.rgb, P * 3, 128);
 	obtain(chunk, geom.tiles_touched, P, 128);
@@ -255,9 +255,62 @@ int CudaRasterizer::Rasterizer::forward(
 		binningState.sorting_size,
 		binningState.point_list_keys_unsorted, binningState.point_list_keys,
 		binningState.point_list_unsorted, binningState.point_list,
-		num_rendered, 0, 32 ), debug)
+		num_rendered, 0, bit ), debug)
 
 	CHECK_CUDA(cudaMemset(imgState.ranges, 0, tile_grid.x * tile_grid.y * sizeof(uint2)), debug);
+// 	float2* mean = new float2[P];
+// 	float4* conic = new float4[P];
+// 	float* opa = new float[P];
+// 	float2* scale = new float2[P];
+// 	CHECK_CUDA(cudaDeviceSynchronize(), debug);
+// 	CHECK_CUDA(cudaMemcpy(
+//     mean,                          // 主机端目标地址
+//     geomState.means2D,       // 设备端源地址
+//     P * sizeof(float2),cudaMemcpyDeviceToHost
+// ), debug);
+// 	CHECK_CUDA(cudaMemcpy(
+//     conic,                          // 主机端目标地址
+//     geomState.conic_opacity,       // 设备端源地址
+//     P * sizeof(float4),cudaMemcpyDeviceToHost
+// ), debug);
+// 	CHECK_CUDA(cudaMemcpy(
+//     opa,                          // 主机端目标地址
+//     opacities,       // 设备端源地址
+//     P * sizeof(float),cudaMemcpyDeviceToHost
+// ), debug);
+// 	CHECK_CUDA(cudaMemcpy(
+//     scale,                          // 主机端目标地址
+//     scales,       // 设备端源地址
+//     P * sizeof(float2),cudaMemcpyDeviceToHost
+// ), debug);
+// 	std::ofstream outfile("point_list_keys_unsorted.txt", std::ios::out | std::ios::app);
+// if (!outfile.is_open()) {
+//     std::cerr << "Error: 无法打开point_list_keys_unsorted.txt文件" << std::endl;
+//     return num_rendered;
+// }
+
+// // 4. 写入文件（可选：按行写入，标注索引+key值）
+// outfile << "========== num_rendered = " << num_rendered << " ==========" << std::endl;
+// for (int i = 0; i < P; i++) {
+//     outfile << "索引[" << i << "] : mean = " << mean[i].x << std::endl;
+// 	outfile << "索引[" << i << "] : mean = " << mean[i].y << std::endl;
+
+// 	outfile << "索引[" << i << "] : conic = " << conic[i].w << std::endl;
+// 	outfile << "索引[" << i << "] : conic = " << conic[i].x << std::endl;
+// 	outfile << "索引[" << i << "] : conic = " << conic[i].y << std::endl;
+// 	outfile << "索引[" << i << "] : conic = " << conic[i].z << std::endl;
+// 	outfile << "索引[" << i << "] : conic = " << opa[i] << std::endl;
+// 		outfile << "索引[" << i << "] : conic = " << scale[i].x << std::endl;
+// 			outfile << "索引[" << i << "] : conic = " << scale[i].y << std::endl;
+// }
+// outfile << "============================================" << std::endl << std::endl;
+
+// // 5. 关闭文件+释放主机端内存
+// outfile.close();
+// delete[] mean;
+// delete[] conic;
+// delete[] opa;
+// // ========== 打印逻辑结束 ==========
 
 	// Identify start and end of per-tile workloads in sorted list
 	if (num_rendered > 0)

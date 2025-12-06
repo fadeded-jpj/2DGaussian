@@ -231,13 +231,13 @@ __global__ void cov2dc(
 	float y = scales[idx].y;
 	atomicAdd(&dL_dscale[idx].x, -(2 * pow(cos(theat), 2)) * (d.x) / pow(x, 3));
 	atomicAdd(&dL_dscale[idx].x, -(2 * pow(sin(theat), 2)) * (d.z) / pow(x, 3));
-	atomicAdd(&dL_dscale[idx].x, -(2 * sin(theat) * cos(theat)) * (d.y) / pow(x, 3));
+	atomicAdd(&dL_dscale[idx].x, (2 * sin(theat) * cos(theat)) * (d.y) / pow(x, 3));
 	atomicAdd(&dL_drot[idx], ((pow(x, 2) - pow(y, 2)) * 2 * sin(theat) * cos(theat)) * (d.x) / (pow(x, 2) * pow(y, 2)));
-	atomicAdd(&dL_drot[idx], (-pow(x, 2) + pow(y, 2)) *cos(2*theat)* (d.y) / (pow(x, 2) * pow(y, 2)));
+	atomicAdd(&dL_drot[idx], -(-pow(x, 2) + pow(y, 2)) *cos(2*theat)* (d.y) / (pow(x, 2) * pow(y, 2)));
 	atomicAdd(&dL_drot[idx], ((-pow(x, 2) + pow(y, 2)) * 2 * sin(theat) * cos(theat)) * (d.z) / (pow(x, 2) * pow(y, 2)));
 	atomicAdd(&dL_dscale[idx].y, -(2 * pow(sin(theat), 2)) * (d.x) / pow(y, 3));
 	atomicAdd(&dL_dscale[idx].y, -(2 * pow(cos(theat), 2)) * (d.z) / pow(y, 3));
-	atomicAdd(&dL_dscale[idx].y, (2 * sin(theat) * cos(theat)) * (d.y) / pow(y, 3));
+	atomicAdd(&dL_dscale[idx].y, -(2 * sin(theat) * cos(theat)) * (d.y) / pow(y, 3));
 }
 void BACKWARD::cov2d(const int P,
 					 float2 *scales,

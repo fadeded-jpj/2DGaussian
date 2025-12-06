@@ -22,11 +22,12 @@ from torch import nn
 
 
 class Image_source(nn.Module):
-    def __init__(self, image : torch.Tensor, id, time):
+    def __init__(self, image : torch.Tensor, id, time ,level):
         super(Image_source, self).__init__()
         self.images = image
         self.id = id
         self.time = time
+        self.level = level
 
 def mse(img1, img2):
     return (((img1 - img2)) ** 2).view(img1.shape[0], -1).mean(1, keepdim=True)
@@ -63,6 +64,7 @@ def read_image_from_data(dataset_path='E:\\tx contest\\HPRC_Test1\\Data\\Data_HP
 
     for lightmap in data['lightmap_list']:
         id = lightmap['id']
+        level= lightmap['level']
         lightmap_names = lightmap['lightmaps']
         masks_names = lightmap['masks']
         resolution = lightmap['resolution']
@@ -96,7 +98,7 @@ def read_image_from_data(dataset_path='E:\\tx contest\\HPRC_Test1\\Data\\Data_HP
         print("R max:", lightmap[:, :, 0].max())
 
 
-        exr_file = OpenEXR.OutputFile(os.path.join('data', str(time), f'lightmap_{id}_{time}.exr'),
+        exr_file = OpenEXR.OutputFile(os.path.join('data', str(time), f'lightmap_{id}_{time}__{level}.exr'),
                                   OpenEXR.Header(resolution['width'], resolution['height']))
         exr_file.writePixels({'R': R, 'G': G, 'B': B})
         exr_file.close()
@@ -121,9 +123,9 @@ def read_image_from_exr_to_tensor(exr_path):
     img = torch.from_numpy(img).float().permute(2, 0, 1)  # C, H, W
     return img
 
-def read_images(image_path, id=0, time=0):
-    img_tensor = read_image_from_exr_to_tensor(os.path.join(image_path, f'lightmap_{id}_{time}.exr'))
-    img_sor = Image_source(img_tensor.cuda(), int(id), int(time))
+def read_images(image_path, id=0, time=0,level=""):
+    img_tensor = read_image_from_exr_to_tensor(os.path.join(image_path, f'lightmap_{id}_{time}__{level}.exr'))
+    img_sor = Image_source(img_tensor.cuda(), int(id), int(time),level)
 
     images = img_sor
 
